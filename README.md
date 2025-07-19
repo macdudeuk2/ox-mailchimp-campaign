@@ -2,6 +2,10 @@
 
 A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation.
 
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/macdudeuk2/ox-mailchimp-campaign)
+[![WordPress](https://img.shields.io/badge/WordPress-Plugin-green.svg)](https://wordpress.org/plugins/)
+[![License](https://img.shields.io/badge/License-GPL%20v2%2B-orange.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+
 ## Features
 
 - **Email Campaign Creation**: Create and send Mailchimp campaigns directly from WordPress
@@ -197,10 +201,50 @@ define('WP_DEBUG_LOG', true);
 - Duplicate submission prevention
 - Responsive form design
 
+## Development
+
+### Contributing
+
+This plugin is open source and contributions are welcome! 
+
+**GitHub Repository:** https://github.com/macdudeuk2/ox-mailchimp-campaign
+
+**To contribute:**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Local Development
+
+**Requirements:**
+- WordPress 5.0+
+- PHP 7.4+
+- Mailchimp API access
+- Active Mailchimp audience
+
+**Setup:**
+1. Clone the repository: `git clone https://github.com/macdudeuk2/ox-mailchimp-campaign.git`
+2. Copy to your WordPress plugins directory: `wp-content/plugins/ox-mailchimp-campaign/`
+3. Activate the plugin in WordPress admin
+4. Configure your Mailchimp API settings
+5. Start developing!
+
+### Building for Distribution
+
+The plugin includes a build script for creating distribution packages:
+
+```bash
+./build-distribution.sh
+```
+
+This creates a zip file ready for distribution.
+
 ## Support
 
 For support, please visit:
-- [Plugin Documentation](https://github.com/yourusername/ox-mailchimp-shortcodes)
+- [Plugin Documentation](https://github.com/macdudeuk2/ox-mailchimp-campaign)
 - [WordPress.org Support Forums](https://wordpress.org/support/)
 
 ## License
