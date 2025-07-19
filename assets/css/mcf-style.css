@@ -1,0 +1,109 @@
+/* Mailchimp Campaign Form Styles - Minimal styling to work with theme defaults */
+
+.mcf-campaign-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.mcf-form-row {
+    margin-bottom: 1em;
+}
+
+.mcf-form-row label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+}
+
+.mcf-form-row input[type="text"],
+.mcf-form-row input[type="email"],
+.mcf-form-row select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Two-column layout */
+.mcf-two-column {
+    display: flex;
+    gap: 1em;
+    align-items: flex-start;
+}
+
+.mcf-two-column .mcf-column {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+.mcf-form-row small {
+    display: block;
+    margin-top: 0.25em;
+    font-size: 0.875em;
+    opacity: 0.7;
+}
+
+/* TinyMCE Editor - minimal styling */
+.mcf-form-row .wp-editor-container {
+    border: 1px solid #ddd;
+}
+
+/* Submit Button - use theme button styles */
+.mcf-form-row button[type="submit"] {
+    margin-right: 0.5em;
+}
+
+/* Loading State */
+#mcf-loading {
+    margin-left: 0.5em;
+    font-style: italic;
+}
+
+/* Messages */
+#mcf-message {
+    margin-top: 1em;
+}
+
+.mcf-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 0.75em;
+    border: 1px solid #c3e6cb;
+    border-radius: 0.25em;
+}
+
+.mcf-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 0.75em;
+    border: 1px solid #f5c6cb;
+    border-radius: 0.25em;
+}
+
+/* Field Error States */
+.mcf-field-error {
+    border-color: #dc3545 !important;
+}
+
+.mcf-validation-error {
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25em;
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mcf-campaign-form {
+        margin: 0 1em;
+    }
+    
+    .mcf-two-column {
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .mcf-form-row button[type="submit"] {
+        width: 100%;
+        margin-top: 0.5em;
+    }
+} 
