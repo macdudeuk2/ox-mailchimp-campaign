@@ -20,6 +20,9 @@ jQuery(document).ready(function($) {
         // Handle template selection
         $('#mcf-template').on('change', handleTemplateSelection);
         
+        // Handle clear content button
+        $('#mcf-clear-content').on('click', handleClearContent);
+        
         // Real-time validation
         setupFormValidation();
     }
@@ -128,6 +131,24 @@ jQuery(document).ready(function($) {
                 // Silent error handling for template loading
             }
         });
+    }
+    
+    function handleClearContent() {
+        // Show confirmation dialog
+        if (confirm('Are you sure you want to clear all content? This action cannot be undone.')) {
+            // Clear TinyMCE editor
+            if (typeof tinymce !== 'undefined' && tinymce.get('mcf-content')) {
+                tinymce.get('mcf-content').setContent('');
+            } else {
+                $('#mcf-content').val('');
+            }
+            
+            // Clear template selection
+            $('#mcf-template').val('');
+            
+            // Show success message
+            showMessage('Content cleared successfully', 'success');
+        }
     }
     
     function handleFormSubmission(e) {

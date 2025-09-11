@@ -73,6 +73,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Set the TinyMCE editor height in the campaign form to a minimum of 600px for improved editing experience.
 
+## [1.1.4] - 2025-01-26
+
+### Added
+- **Clear Content Button**: Added a "Clear Content" button next to the Email Content label
+- **Confirmation Dialog**: Clear content action now shows a confirmation dialog to prevent accidental data loss
+- **Template Reset**: Clear content button also resets the template selection dropdown
+- **Success Feedback**: Users receive confirmation when content is cleared successfully
+
+### Improved
+- **User Experience**: Users can now easily clear editor content and start fresh without manually selecting and deleting text
+- **Template Workflow**: Better handling of template selection and content clearing workflow
+- **Responsive Design**: Clear content button adapts to mobile layouts
+- **Theme Integration**: Frontend form styling now aligns with Kadence theme color standards and design patterns
+- **Visual Consistency**: Form elements use Kadence CSS custom properties for colors, spacing, and styling
+- **Button Styling**: Clear content and submit buttons follow Kadence theme design language with hover effects and transitions
+
 ## [1.1.3] - 2025-07-07
 
 ### Changed

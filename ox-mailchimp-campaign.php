@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.1.3
+ * Version: 1.1.4
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.1.3
+ * @version 1.1.4
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.1.3');
+define('MCF_PLUGIN_VERSION', '1.1.4');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));

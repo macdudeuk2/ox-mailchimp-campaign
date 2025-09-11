@@ -1,8 +1,13 @@
-/* Mailchimp Campaign Form Styles - Minimal styling to work with theme defaults */
+/* Mailchimp Campaign Form Styles - Frontend styling aligned with Kadence theme */
 
 .mcf-campaign-form {
     max-width: 800px;
     margin: 0 auto;
+    padding: 1.5em;
+    background: var(--global-palette9, #ffffff);
+    border: 1px solid var(--global-palette7, #f0f0f0);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .mcf-form-row {
@@ -12,7 +17,9 @@
 .mcf-form-row label {
     display: block;
     margin-bottom: 0.5em;
-    font-weight: bold;
+    font-weight: 600;
+    color: var(--global-palette3, #333333);
+    font-size: 0.95em;
 }
 
 .mcf-form-row input[type="text"],
@@ -21,6 +28,21 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    padding: 0.75em;
+    border: 1px solid var(--global-palette7, #e0e0e0);
+    border-radius: 4px;
+    background: var(--global-palette9, #ffffff);
+    color: var(--global-palette3, #333333);
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mcf-form-row input[type="text"]:focus,
+.mcf-form-row input[type="email"]:focus,
+.mcf-form-row select:focus {
+    outline: none;
+    border-color: var(--global-palette1, #007cba);
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
 }
 
 /* Two-column layout */
@@ -42,14 +64,84 @@
     opacity: 0.7;
 }
 
-/* TinyMCE Editor - minimal styling */
-.mcf-form-row .wp-editor-container {
-    border: 1px solid #ddd;
+/* Content Header with Clear Button */
+.mcf-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5em;
 }
 
-/* Submit Button - use theme button styles */
+.mcf-content-header label {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+#mcf-clear-content {
+    margin-left: 1em;
+    font-size: 0.875em;
+    padding: 0.5em 1em;
+    background: var(--global-palette6, #666666);
+    color: var(--global-palette9, #ffffff);
+    border: 1px solid var(--global-palette6, #666666);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+#mcf-clear-content:hover {
+    background: var(--global-palette5, #555555);
+    border-color: var(--global-palette5, #555555);
+    transform: translateY(-1px);
+}
+
+#mcf-clear-content:active {
+    transform: translateY(0);
+}
+
+/* TinyMCE Editor - styled to match Kadence theme */
+.mcf-form-row .wp-editor-container {
+    border: 1px solid var(--global-palette7, #e0e0e0);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mcf-form-row .wp-editor-container:focus-within {
+    border-color: var(--global-palette1, #007cba);
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
+}
+
+/* Submit Button - styled to match Kadence theme */
 .mcf-form-row button[type="submit"] {
     margin-right: 0.5em;
+    background: var(--global-palette1, #007cba);
+    color: var(--global-palette9, #ffffff);
+    border: 1px solid var(--global-palette1, #007cba);
+    border-radius: 4px;
+    padding: 0.75em 1.5em;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mcf-form-row button[type="submit"]:hover {
+    background: var(--global-palette2, #005a87);
+    border-color: var(--global-palette2, #005a87);
+    transform: translateY(-1px);
+}
+
+.mcf-form-row button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+.mcf-form-row button[type="submit"]:disabled {
+    background: var(--global-palette7, #e0e0e0);
+    color: var(--global-palette6, #666666);
+    border-color: var(--global-palette7, #e0e0e0);
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Loading State */
@@ -68,7 +160,8 @@
     color: #155724;
     padding: 0.75em;
     border: 1px solid #c3e6cb;
-    border-radius: 0.25em;
+    border-radius: 4px;
+    font-weight: 500;
 }
 
 .mcf-error {
@@ -76,12 +169,14 @@
     color: #721c24;
     padding: 0.75em;
     border: 1px solid #f5c6cb;
-    border-radius: 0.25em;
+    border-radius: 4px;
+    font-weight: 500;
 }
 
 /* Field Error States */
 .mcf-field-error {
     border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1) !important;
 }
 
 .mcf-validation-error {
@@ -89,12 +184,14 @@
     font-size: 0.875em;
     margin-top: 0.25em;
     display: block;
+    font-weight: 500;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     .mcf-campaign-form {
         margin: 0 1em;
+        padding: 1em;
     }
     
     .mcf-two-column {
@@ -102,8 +199,28 @@
         gap: 0.5em;
     }
     
+    .mcf-content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5em;
+    }
+    
+    #mcf-clear-content {
+        margin-left: 0;
+        align-self: flex-end;
+        font-size: 0.8em;
+        padding: 0.4em 0.8em;
+    }
+    
     .mcf-form-row button[type="submit"] {
         width: 100%;
         margin-top: 0.5em;
+        padding: 0.8em 1em;
+    }
+    
+    .mcf-form-row input[type="text"],
+    .mcf-form-row input[type="email"],
+    .mcf-form-row select {
+        padding: 0.8em;
     }
 } 

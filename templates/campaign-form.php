@@ -78,7 +78,12 @@ $has_override = !empty($from_email_override);
         </div>
         
         <div class="mcf-form-row">
-            <label for="mcf-content"><?php echo esc_html($label_content); ?> *</label>
+            <div class="mcf-content-header">
+                <label for="mcf-content"><?php echo esc_html($label_content); ?> *</label>
+                <button type="button" id="mcf-clear-content" class="button button-secondary">
+                    <?php _e('Clear Content', 'ox-mailchimp-campaign'); ?>
+                </button>
+            </div>
             <?php
             // Set up TinyMCE
             $editor_settings = array(
