@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.1.4
+ * Version: 1.1.5
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.1.4
+ * @version 1.1.5
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.1.4');
+define('MCF_PLUGIN_VERSION', '1.1.5');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -559,8 +559,17 @@ function mcf_plugin_upgrade_check() {
     }
     if (version_compare($stored_version, MCF_PLUGIN_VERSION, '<')) {
         // Run upgrade routines here if needed
-        // Example: if ($stored_version < '1.1.0') { ... }
-        // (Add upgrade logic as needed for future versions)
+        
+        // Version 1.1.5: Added image insertion functionality
+        if (version_compare($stored_version, '1.1.5', '<')) {
+            // No database changes needed for image functionality
+            // TinyMCE configuration is handled automatically
+        }
+        
+        // Example for future versions:
+        // if (version_compare($stored_version, '1.2.0', '<')) {
+        //     // Add upgrade logic here
+        // }
 
         // Update the stored version
         update_option('mcf_plugin_version', MCF_PLUGIN_VERSION);

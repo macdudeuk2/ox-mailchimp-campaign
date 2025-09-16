@@ -73,6 +73,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Set the TinyMCE editor height in the campaign form to a minimum of 600px for improved editing experience.
 
+## [1.1.5] - 2025-01-26
+
+### Added
+- **Image Insertion**: Added TinyMCE image plugin to enable URL-based image insertion in email campaigns
+- **Image Dialog**: Users can now click image button in toolbar to insert images via URL
+- **Image Parameters**: Support for setting image width, height, alignment, and alt text
+- **Advanced Image Options**: Access to border, spacing, and style options through Advanced tab
+
+### Improved
+- **Email Content**: Enhanced email campaign creation with visual content support
+- **User Experience**: Streamlined image insertion without requiring media upload permissions
+
 ## [1.1.4] - 2025-01-26
 
 ### Added

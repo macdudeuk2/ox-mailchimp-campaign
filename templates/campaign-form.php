@@ -91,12 +91,17 @@ $has_override = !empty($from_email_override);
                 'textarea_rows' => 15,
                 'media_buttons' => false,
                 'tinymce' => array(
-                    'toolbar1' => 'formatselect,bold,italic,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,wp_more,spellchecker,fullscreen,wp_adv',
+                    'toolbar1' => 'formatselect,bold,italic,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,image,wp_more,spellchecker,fullscreen,wp_adv',
                     'toolbar2' => 'strikethrough,hr,forecolor,pastetext,removeformat,charmap,outdent,indent,undo,redo,wp_help',
                     'toolbar3' => '',
                     'toolbar4' => '',
                     'content_css' => get_stylesheet_directory_uri() . '/style.css',
                     'height' => 600,
+                    // Image plugin configuration
+                    'image_advtab' => true,
+                    'image_description' => false,
+                    'image_title' => false,
+                    'image_caption' => false,
                 ),
                 'quicktags' => true,
                 'drag_drop_upload' => false

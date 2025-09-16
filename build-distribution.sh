@@ -1,11 +1,13 @@
+
+
 #!/bin/bash
 
-# Mailchimp Campaign Form Plugin Distribution Builder
+# OX Mailchimp Campaign Plugin Distribution Builder
 # This script creates a clean distribution package of the plugin
 
 # Set variables
-PLUGIN_NAME="mailchimp-campaign-form"
-VERSION="1.1.2"
+PLUGIN_NAME="ox-mailchimp-campaign"
+VERSION="1.1.5"
 DIST_DIR="../${PLUGIN_NAME}-${VERSION}"
 
 # Colors for output
@@ -14,11 +16,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Building Mailchimp Campaign Form Plugin Distribution${NC}"
+echo -e "${GREEN}Building OX Mailchimp Campaign Plugin Distribution${NC}"
 echo "=================================================="
 
 # Check if we're in the right directory
-if [ ! -f "mailchimp-campaign-form.php" ]; then
+if [ ! -f "ox-mailchimp-campaign.php" ]; then
     echo -e "${RED}Error: Please run this script from the plugin directory${NC}"
     exit 1
 fi

@@ -1,4 +1,6 @@
-# OX Mailchimp Shortcodes
+# OX Mailchimp Campaign
+
+**Version: 1.1.5**
 
 A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation.
 
@@ -18,6 +20,7 @@ A WordPress plugin that generates forms for sending email campaigns using Mailch
 - **Template Variables**: Support for Mailchimp merge tags and custom variables
 - **From Email Override**: Use a different email address to avoid contact lookup issues in email clients
 - **Shortcode Support in Templates**: WordPress shortcodes in email templates are processed before loading into the message field
+- **Image Support**: Insert images via URL with full parameter control (width, height, alignment, alt text)
 
 ## Requirements
 
@@ -29,19 +32,18 @@ A WordPress plugin that generates forms for sending email campaigns using Mailch
 ## Installation
 
 ### New Installation
-1. Upload the `ox-mailchimp-shortcodes` folder to your `/wp-content/plugins/` directory
+1. Upload the `ox-mailchimp-campaign` folder to your `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Go to 'Settings > OX Mailchimp Shortcodes' to configure your API settings
+3. Go to 'Settings > Mailchimp Campaign Form' to configure your API settings
 
-### Migration from Mailchimp Campaign Form Plugin
-If you're upgrading from the old Mailchimp Campaign Form plugin:
+### Migration from Old Plugin
+If you're upgrading from a previous version:
 
-1. **Deactivate** the old Mailchimp Campaign Form plugin
-2. **Install and activate** this new OX Mailchimp Shortcodes plugin
-3. **Look for the migration notice** in your WordPress admin area
-4. **Click "Migrate Settings"** to automatically copy all your settings
-5. **Update shortcodes** in your content from `[mailchimp_campaign_form]` to `[ox_mailchimp_shortcodes]`
-6. **Remove** the old plugin when ready
+1. **Deactivate** the old plugin if upgrading from a different plugin
+2. **Install and activate** this OX Mailchimp Campaign plugin
+3. **Settings are preserved** automatically when upgrading
+4. **Update shortcodes** in your content if migrating from a different plugin
+5. **Remove** the old plugin when ready
 
 For detailed migration instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -76,14 +78,14 @@ For detailed migration instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ### Shortcode
 
-Use the shortcode `[ox_mailchimp_shortcodes]` to display the campaign form on any page or post.
+Use the shortcode `[ox_mailchimp_campaign_form]` to display the campaign form on any page or post.
 
 **Example:**
 ```
-[ox_mailchimp_shortcodes title="Send Newsletter"]
+[ox_mailchimp_campaign_form title="Send Newsletter"]
 ```
 
-**Note:** If you're migrating from the old plugin, update your shortcodes from `[mailchimp_campaign_form]` to `[ox_mailchimp_shortcodes]`.
+**Note:** The shortcode accepts an optional `title` parameter to customize the form heading.
 
 ### Form Fields
 
@@ -94,7 +96,7 @@ Use the shortcode `[ox_mailchimp_shortcodes]` to display the campaign form on an
 - **Reply-To Email**: Email address for replies
 - **Select Members tagged as**: Choose which Mailchimp segment to target
 - **Email Template**: Optional template to pre-fill content
-- **Email Content**: Rich text editor for email content
+- **Email Content**: Rich text editor for email content with image insertion support
 
 ### Template Variables
 
@@ -108,6 +110,23 @@ You can use these variables in your email templates:
 - `{{unsubscribe}}` - Unsubscribe link
 
 These will be automatically converted to Mailchimp merge tags when the campaign is created.
+
+### Image Insertion
+
+The email content editor includes full image support:
+
+1. **Click the image button** in the TinyMCE toolbar
+2. **Paste an image URL** in the Source field
+3. **Set image parameters**:
+   - Width and Height
+   - Alternative Text (for accessibility)
+   - Alignment (left, center, right)
+4. **Advanced options** (in Advanced tab):
+   - Border settings
+   - Vertical and horizontal spacing
+   - Custom CSS styles
+
+**Supported image formats**: JPG, PNG, GIF, WebP
 
 ## Customization
 
