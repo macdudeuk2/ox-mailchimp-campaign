@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.1.5
+ * Version: 1.1.6
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.1.5
+ * @version 1.1.6
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.1.5');
+define('MCF_PLUGIN_VERSION', '1.1.6');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -69,11 +69,49 @@ class MailchimpCampaignForm {
     }
     
     /**
+     * Check if current page contains our form shortcode
+     */
+    private function is_form_page() {
+        global $post;
+        return $post && has_shortcode($post->post_content, 'ox_mailchimp_campaign_form');
+    }
+    
+    /**
+     * Clean HTML content for email compatibility
+     * Converts WordPress classes to inline styles that work in email clients
+     */
+    private function clean_html_for_email($content) {
+        // Convert WordPress image alignment classes to inline styles
+        $content = preg_replace('/class="[^"]*alignleft[^"]*"/', 'style="float: left; margin-right: 15px; margin-bottom: 15px;"', $content);
+        $content = preg_replace('/class="[^"]*alignright[^"]*"/', 'style="float: right; margin-left: 15px; margin-bottom: 15px;"', $content);
+        $content = preg_replace('/class="[^"]*aligncenter[^"]*"/', 'style="display: block; margin: 0 auto; text-align: center;"', $content);
+        $content = preg_replace('/class="[^"]*alignnone[^"]*"/', 'style="margin: 0;"', $content);
+        
+        // Remove WordPress-specific image classes that don't work in emails
+        $content = preg_replace('/class="[^"]*wp-image-\d+[^"]*"/', '', $content);
+        $content = preg_replace('/class="[^"]*attachment-[^"]*[^"]*"/', '', $content);
+        $content = preg_replace('/class="[^"]*size-[^"]*[^"]*"/', '', $content);
+        
+        // Clean up empty class attributes
+        $content = preg_replace('/class="\s*"/', '', $content);
+        
+        // Ensure images have proper email-compatible attributes
+        $content = preg_replace('/<img([^>]*?)(?:\s+class="[^"]*")?([^>]*?)>/', '<img$1$2>', $content);
+        
+        return $content;
+    }
+    
+    /**
      * Enqueue scripts and styles
      */
     public function enqueue_scripts() {
         wp_enqueue_script('mcf-script', MCF_PLUGIN_URL . 'assets/js/mcf-script.js', array('jquery'), MCF_PLUGIN_VERSION, true);
         wp_enqueue_style('mcf-style', MCF_PLUGIN_URL . 'assets/css/mcf-style.css', array(), MCF_PLUGIN_VERSION);
+        
+        // Enqueue media scripts for image uploader (only on pages with our form)
+        if ($this->is_form_page()) {
+            wp_enqueue_media();
+        }
         
         // Localize script for AJAX
         wp_localize_script('mcf-script', 'ox_mailchimp_campaign_ajax', array(
@@ -182,7 +220,7 @@ class MailchimpCampaignForm {
             sanitize_text_field($_POST['from_name']) . 
             sanitize_email($_POST['from_email']) . 
             sanitize_text_field($_POST['tag']) . 
-            wp_kses_post($_POST['content'])
+            $this->clean_html_for_email(wp_kses_post($_POST['content']))
         );
         
         // Check if this campaign was already created recently (within 5 minutes)
@@ -206,7 +244,7 @@ class MailchimpCampaignForm {
             'from_email' => sanitize_email($_POST['from_email']),
             'reply_to' => sanitize_email($_POST['reply_to']),
             'title' => sanitize_text_field($_POST['title']),
-            'content' => wp_kses_post($_POST['content']),
+            'content' => $this->clean_html_for_email(wp_kses_post($_POST['content'])),
             'tag' => sanitize_text_field($_POST['tag'])
         );
         
@@ -564,6 +602,12 @@ function mcf_plugin_upgrade_check() {
         if (version_compare($stored_version, '1.1.5', '<')) {
             // No database changes needed for image functionality
             // TinyMCE configuration is handled automatically
+        }
+        
+        // Version 1.1.6: Added WordPress media uploader support
+        if (version_compare($stored_version, '1.1.6', '<')) {
+            // No database changes needed for media uploader functionality
+            // Media buttons and wp_enqueue_media() handled automatically
         }
         
         // Example for future versions:

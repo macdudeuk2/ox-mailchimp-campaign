@@ -112,6 +112,29 @@
     box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
 }
 
+/* WordPress Image Alignment Classes for TinyMCE Editor */
+.mcf-form-row .wp-editor-container .aligncenter {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.mcf-form-row .wp-editor-container .alignleft {
+    float: left;
+    margin-right: 15px;
+    margin-bottom: 15px;
+}
+
+.mcf-form-row .wp-editor-container .alignright {
+    float: right;
+    margin-left: 15px;
+    margin-bottom: 15px;
+}
+
+.mcf-form-row .wp-editor-container .alignnone {
+    margin: 0;
+}
+
 /* Submit Button - styled to match Kadence theme */
 .mcf-form-row button[type="submit"] {
     margin-right: 0.5em;

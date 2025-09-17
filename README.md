@@ -1,6 +1,6 @@
 # OX Mailchimp Campaign
 
-**Version: 1.1.5**
+**Version: 1.1.6**
 
 A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation.
 
@@ -21,6 +21,7 @@ A WordPress plugin that generates forms for sending email campaigns using Mailch
 - **From Email Override**: Use a different email address to avoid contact lookup issues in email clients
 - **Shortcode Support in Templates**: WordPress shortcodes in email templates are processed before loading into the message field
 - **Image Support**: Insert images via URL with full parameter control (width, height, alignment, alt text)
+- **Media Uploader**: WordPress media library integration for easy image upload and insertion
 
 ## Requirements
 
@@ -96,7 +97,7 @@ Use the shortcode `[ox_mailchimp_campaign_form]` to display the campaign form on
 - **Reply-To Email**: Email address for replies
 - **Select Members tagged as**: Choose which Mailchimp segment to target
 - **Email Template**: Optional template to pre-fill content
-- **Email Content**: Rich text editor for email content with image insertion support
+- **Email Content**: Rich text editor for email content with image insertion and media uploader support
 
 ### Template Variables
 
@@ -113,8 +114,9 @@ These will be automatically converted to Mailchimp merge tags when the campaign 
 
 ### Image Insertion
 
-The email content editor includes full image support:
+The email content editor includes full image support with two methods:
 
+#### Method 1: Image URL
 1. **Click the image button** in the TinyMCE toolbar
 2. **Paste an image URL** in the Source field
 3. **Set image parameters**:
@@ -125,6 +127,13 @@ The email content editor includes full image support:
    - Border settings
    - Vertical and horizontal spacing
    - Custom CSS styles
+
+#### Method 2: Media Uploader
+1. **Click the "Add Media" button** above the editor
+2. **Upload a new image** or select from your media library
+3. **Configure image settings** and insert into the editor
+
+**Image Alignment**: Both methods support proper alignment (left, center, right) that displays correctly in both the editor and email clients.
 
 **Supported image formats**: JPG, PNG, GIF, WebP
 

@@ -89,13 +89,14 @@ $has_override = !empty($from_email_override);
             $editor_settings = array(
                 'textarea_name' => 'content',
                 'textarea_rows' => 15,
-                'media_buttons' => false,
+                'media_buttons' => true,
                 'tinymce' => array(
                     'toolbar1' => 'formatselect,bold,italic,bullist,numlist,blockquote,alignleft,aligncenter,alignright,link,unlink,image,wp_more,spellchecker,fullscreen,wp_adv',
                     'toolbar2' => 'strikethrough,hr,forecolor,pastetext,removeformat,charmap,outdent,indent,undo,redo,wp_help',
                     'toolbar3' => '',
                     'toolbar4' => '',
                     'content_css' => get_stylesheet_directory_uri() . '/style.css',
+                    'content_style' => '.aligncenter { display: block !important; margin: 0 auto !important; text-align: center !important; } .alignleft { float: left !important; margin-right: 15px !important; margin-bottom: 15px !important; } .alignright { float: right !important; margin-left: 15px !important; margin-bottom: 15px !important; } .alignnone { margin: 0 !important; }',
                     'height' => 600,
                     // Image plugin configuration
                     'image_advtab' => true,

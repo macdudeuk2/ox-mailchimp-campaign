@@ -5,6 +5,23 @@ All notable changes to the Mailchimp Campaign Form plugin will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2025-09-17
+
+### Added
+- **WordPress Media Uploader Integration**: Added full WordPress media library support to the TinyMCE editor
+- **Media Buttons**: Enabled "Add Media" button in the campaign form editor for easy image upload and selection
+- **Conditional Media Loading**: Media scripts only load on pages containing the campaign form shortcode for better performance
+
+### Enhanced
+- **Image Insertion**: Users can now upload images directly through WordPress media library or continue using URL-based insertion
+- **User Experience**: Improved workflow for adding images to email campaigns with familiar WordPress interface
+- **Image Alignment**: Fixed WordPress image alignment classes to work properly in TinyMCE editor
+- **Email Compatibility**: Added HTML processing to convert WordPress classes to email-compatible inline styles
+
+### Fixed
+- **TinyMCE Display**: WordPress image alignment classes now display correctly in the editor preview
+- **Email Rendering**: Images maintain proper alignment in email clients by converting classes to inline styles
+
 ## [1.1.0] - 2025-07-05
 
 ### Fixed
