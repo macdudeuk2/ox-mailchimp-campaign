@@ -147,6 +147,34 @@ if (!defined('ABSPATH')) {
             </tr>
         </table>
         
+        <h2><?php _e('Predefined From Names & Emails', 'ox-mailchimp-campaign'); ?></h2>
+        <p class="description"><?php _e('Create lists of predefined names and emails that users can select from in the campaign form.', 'ox-mailchimp-campaign'); ?></p>
+        
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <label for="predefined_from_names"><?php _e('Predefined From Names', 'ox-mailchimp-campaign'); ?></label>
+                </th>
+                <td>
+                    <textarea id="predefined_from_names" name="predefined_from_names" rows="5" cols="50" class="large-text"><?php echo esc_textarea($predefined_from_names); ?></textarea>
+                    <p class="description">
+                        <?php _e('Enter one name per line. These will appear as options in the From Name dropdown.', 'ox-mailchimp-campaign'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="predefined_from_emails"><?php _e('Predefined From Emails', 'ox-mailchimp-campaign'); ?></label>
+                </th>
+                <td>
+                    <textarea id="predefined_from_emails" name="predefined_from_emails" rows="5" cols="50" class="large-text"><?php echo esc_textarea($predefined_from_emails); ?></textarea>
+                    <p class="description">
+                        <?php _e('Enter one email per line. These will appear as options in the From Email dropdown.', 'ox-mailchimp-campaign'); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        
         <?php submit_button(); ?>
     </form>
     

@@ -5,6 +5,26 @@ All notable changes to the Mailchimp Campaign Form plugin will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-09-17
+
+### Added
+- **Predefined From Names**: Admin interface to manage list of predefined from names
+- **Predefined From Emails**: Admin interface to manage list of predefined from emails  
+- **Dropdown Selection**: Frontend form now includes dropdowns for quick selection
+- **Auto-Sync Functionality**: From Email automatically syncs to Reply-To field
+- **Smart Field Interaction**: Dropdowns and manual input work together seamlessly
+
+### Enhanced
+- **User Experience**: Faster campaign creation with predefined options
+- **Admin Interface**: New settings section for managing predefined lists
+- **Form Flexibility**: Users can select from dropdown or type custom values
+- **Email Workflow**: Streamlined process for setting sender information
+
+### Technical
+- **Database Schema**: Added options for storing predefined lists
+- **JavaScript Enhancement**: Smart dropdown and auto-sync functionality
+- **CSS Styling**: Consistent styling for new dropdown elements
+
 ## [1.1.6] - 2025-09-17
 
 ### Added

@@ -42,11 +42,39 @@ $has_override = !empty($from_email_override);
         <div class="mcf-form-row mcf-two-column">
             <div class="mcf-column">
                 <label for="mcf-from-name"><?php echo esc_html($label_from_name); ?> *</label>
-                <input type="text" id="mcf-from-name" name="from_name" required />
+                <div class="mcf-autocomplete-field">
+                    <input type="text" id="mcf-from-name" name="from_name" required 
+                           placeholder="<?php _e('Type or select from list...', 'ox-mailchimp-campaign'); ?>" />
+                    <?php 
+                    $predefined_names = get_option('ox_mailchimp_campaign_predefined_from_names', '');
+                    if (!empty($predefined_names)): 
+                        $names_array = array_filter(array_map('trim', explode("\n", $predefined_names)));
+                    ?>
+                    <div id="mcf-from-name-suggestions" class="mcf-suggestions" style="display: none;">
+                        <?php foreach ($names_array as $name): ?>
+                            <div class="mcf-suggestion" data-value="<?php echo esc_attr($name); ?>"><?php echo esc_html($name); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
             </div>
             <div class="mcf-column">
                 <label for="mcf-from-email"><?php echo esc_html($label_from_email); ?> *</label>
-                <input type="email" id="mcf-from-email" name="from_email" required />
+                <div class="mcf-autocomplete-field">
+                    <input type="email" id="mcf-from-email" name="from_email" required 
+                           placeholder="<?php _e('Type or select from list...', 'ox-mailchimp-campaign'); ?>" />
+                    <?php 
+                    $predefined_emails = get_option('ox_mailchimp_campaign_predefined_from_emails', '');
+                    if (!empty($predefined_emails)): 
+                        $emails_array = array_filter(array_map('trim', explode("\n", $predefined_emails)));
+                    ?>
+                    <div id="mcf-from-email-suggestions" class="mcf-suggestions" style="display: none;">
+                        <?php foreach ($emails_array as $email): ?>
+                            <div class="mcf-suggestion" data-value="<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         
@@ -58,7 +86,21 @@ $has_override = !empty($from_email_override);
                     <small style="color: #666;"><?php _e('Using override email', 'ox-mailchimp-campaign'); ?></small>
                 <?php else: ?>
                     <label for="mcf-reply-to"><?php echo esc_html($label_reply_to); ?> *</label>
-                    <input type="email" id="mcf-reply-to" name="reply_to" required />
+                    <div class="mcf-autocomplete-field">
+                        <input type="email" id="mcf-reply-to" name="reply_to" required 
+                               placeholder="<?php _e('Type or select from list...', 'ox-mailchimp-campaign'); ?>" />
+                        <?php 
+                        $predefined_emails = get_option('ox_mailchimp_campaign_predefined_from_emails', '');
+                        if (!empty($predefined_emails)): 
+                            $emails_array = array_filter(array_map('trim', explode("\n", $predefined_emails)));
+                        ?>
+                        <div id="mcf-reply-to-suggestions" class="mcf-suggestions" style="display: none;">
+                            <?php foreach ($emails_array as $email): ?>
+                                <div class="mcf-suggestion" data-value="<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             </div>
             <div class="mcf-column">

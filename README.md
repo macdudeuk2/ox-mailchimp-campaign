@@ -1,6 +1,6 @@
 # OX Mailchimp Campaign
 
-**Version: 1.1.6**
+**Version: 1.2.0**
 
 A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation.
 
@@ -22,6 +22,7 @@ A WordPress plugin that generates forms for sending email campaigns using Mailch
 - **Shortcode Support in Templates**: WordPress shortcodes in email templates are processed before loading into the message field
 - **Image Support**: Insert images via URL with full parameter control (width, height, alignment, alt text)
 - **Media Uploader**: WordPress media library integration for easy image upload and insertion
+- **Predefined From Names & Emails**: Dropdown lists for quick selection of common sender information
 
 ## Requirements
 
@@ -136,6 +137,22 @@ The email content editor includes full image support with two methods:
 **Image Alignment**: Both methods support proper alignment (left, center, right) that displays correctly in both the editor and email clients.
 
 **Supported image formats**: JPG, PNG, GIF, WebP
+
+## Predefined From Names & Emails
+
+The plugin now supports predefined lists of from names and emails for quick selection:
+
+### Admin Configuration
+1. Go to **Settings > Mailchimp Campaign Form**
+2. Scroll to **"Predefined From Names & Emails"** section
+3. Add names and emails (one per line) in the textareas
+4. Save settings
+
+### Frontend Usage
+- **From Name Field**: Users can select from dropdown or type custom names
+- **From Email Field**: Users can select from dropdown or type custom emails
+- **Auto-Sync**: When From Email is selected/entered, Reply-To automatically updates
+- **Override Option**: Users can still manually change Reply-To if needed
 
 ## Customization
 

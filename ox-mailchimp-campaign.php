@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.1.6
+ * Version: 1.2.0
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.1.6
+ * @version 1.2.0
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.1.6');
+define('MCF_PLUGIN_VERSION', '1.2.0');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -81,22 +81,40 @@ class MailchimpCampaignForm {
      * Converts WordPress classes to inline styles that work in email clients
      */
     private function clean_html_for_email($content) {
-        // Convert WordPress image alignment classes to inline styles
-        $content = preg_replace('/class="[^"]*alignleft[^"]*"/', 'style="float: left; margin-right: 15px; margin-bottom: 15px;"', $content);
-        $content = preg_replace('/class="[^"]*alignright[^"]*"/', 'style="float: right; margin-left: 15px; margin-bottom: 15px;"', $content);
-        $content = preg_replace('/class="[^"]*aligncenter[^"]*"/', 'style="display: block; margin: 0 auto; text-align: center;"', $content);
-        $content = preg_replace('/class="[^"]*alignnone[^"]*"/', 'style="margin: 0;"', $content);
+        // Process images with alignment classes, but preserve existing inline styles
+        $content = preg_replace_callback('/<img([^>]*?class="[^"]*align(left|right|center|none)[^"]*"[^>]*?)>/', function($matches) {
+            $img_tag = $matches[0];
+            $alignment = $matches[2];
+            
+            // Check if image already has inline styles
+            if (preg_match('/style="([^"]*)"/', $img_tag, $style_matches)) {
+                // Image already has styles - just remove the alignment class
+                $new_tag = preg_replace('/class="([^"]*align(left|right|center|none)[^"]*)"/', '', $img_tag);
+                return $new_tag;
+            } else {
+                // No existing styles - add appropriate alignment styles
+                switch($alignment) {
+                    case 'left':
+                        return preg_replace('/class="([^"]*alignleft[^"]*)"/', 'style="float: left; margin-right: 15px; margin-bottom: 15px;"', $img_tag);
+                    case 'right':
+                        return preg_replace('/class="([^"]*alignright[^"]*)"/', 'style="float: right; margin-left: 15px; margin-bottom: 15px;"', $img_tag);
+                    case 'center':
+                        return preg_replace('/class="([^"]*aligncenter[^"]*)"/', 'style="display: block; margin: 0 auto; text-align: center;"', $img_tag);
+                    case 'none':
+                        return preg_replace('/class="([^"]*alignnone[^"]*)"/', '', $img_tag); // Remove alignnone class, don't add styles
+                    default:
+                        return $img_tag;
+                }
+            }
+        }, $content);
         
-        // Remove WordPress-specific image classes that don't work in emails
+        // Remove WordPress-specific image classes that don't work in emails (but preserve existing styles)
         $content = preg_replace('/class="[^"]*wp-image-\d+[^"]*"/', '', $content);
         $content = preg_replace('/class="[^"]*attachment-[^"]*[^"]*"/', '', $content);
         $content = preg_replace('/class="[^"]*size-[^"]*[^"]*"/', '', $content);
         
         // Clean up empty class attributes
         $content = preg_replace('/class="\s*"/', '', $content);
-        
-        // Ensure images have proper email-compatible attributes
-        $content = preg_replace('/<img([^>]*?)(?:\s+class="[^"]*")?([^>]*?)>/', '<img$1$2>', $content);
         
         return $content;
     }
@@ -162,6 +180,10 @@ class MailchimpCampaignForm {
         
         // Save from_email_override
         update_option('ox_mailchimp_campaign_from_email_override', sanitize_email($_POST['from_email_override']));
+        
+        // Save predefined from names and emails
+        update_option('ox_mailchimp_campaign_predefined_from_names', sanitize_textarea_field($_POST['predefined_from_names']));
+        update_option('ox_mailchimp_campaign_predefined_from_emails', sanitize_textarea_field($_POST['predefined_from_emails']));
             
             echo '<div class="notice notice-success"><p>' . __('Settings saved!', 'ox-mailchimp-campaign') . '</p></div>';
         }
@@ -184,6 +206,10 @@ class MailchimpCampaignForm {
         
         // Get from_email_override
         $from_email_override = get_option('ox_mailchimp_campaign_from_email_override', '');
+        
+        // Get predefined from names and emails
+        $predefined_from_names = get_option('ox_mailchimp_campaign_predefined_from_names', '');
+        $predefined_from_emails = get_option('ox_mailchimp_campaign_predefined_from_emails', '');
         
         include MCF_PLUGIN_DIR . 'admin/admin-page.php';
     }
@@ -608,6 +634,17 @@ function mcf_plugin_upgrade_check() {
         if (version_compare($stored_version, '1.1.6', '<')) {
             // No database changes needed for media uploader functionality
             // Media buttons and wp_enqueue_media() handled automatically
+        }
+        
+        // Version 1.2.0: Added predefined from names and emails functionality
+        if (version_compare($stored_version, '1.2.0', '<')) {
+            // Initialize predefined lists as empty strings if they don't exist
+            if (get_option('ox_mailchimp_campaign_predefined_from_names') === false) {
+                add_option('ox_mailchimp_campaign_predefined_from_names', '');
+            }
+            if (get_option('ox_mailchimp_campaign_predefined_from_emails') === false) {
+                add_option('ox_mailchimp_campaign_predefined_from_emails', '');
+            }
         }
         
         // Example for future versions:

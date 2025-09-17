@@ -25,6 +25,9 @@ jQuery(document).ready(function($) {
         
         // Real-time validation
         setupFormValidation();
+        
+        // Setup dropdown functionality
+        setupDropdownFields();
     }
     
     function loadTags() {
@@ -337,6 +340,153 @@ jQuery(document).ready(function($) {
     function isValidEmail(email) {
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
+    }
+    
+    /**
+     * Setup autocomplete functionality for from name and from email fields
+     */
+    function setupDropdownFields() {
+        // Setup From Name autocomplete
+        setupAutocompleteField('#mcf-from-name', '#mcf-from-name-suggestions');
+        
+        // Setup From Email autocomplete
+        setupAutocompleteField('#mcf-from-email', '#mcf-from-email-suggestions', function(selectedValue) {
+            // Auto-sync to Reply-To field if it's not readonly
+            var $replyTo = $('#mcf-reply-to');
+            if (!$replyTo.prop('readonly')) {
+                $replyTo.val(selectedValue);
+            }
+        });
+        
+        // Setup Reply-To autocomplete (only if not readonly)
+        var $replyTo = $('#mcf-reply-to');
+        if (!$replyTo.prop('readonly')) {
+            setupAutocompleteField('#mcf-reply-to', '#mcf-reply-to-suggestions');
+        }
+        
+        // Handle manual typing in From Email field - sync to Reply-To
+        $('#mcf-from-email').on('input', function() {
+            var emailValue = $(this).val();
+            var $replyTo = $('#mcf-reply-to');
+            if (!$replyTo.prop('readonly') && emailValue && isValidEmail(emailValue)) {
+                $replyTo.val(emailValue);
+            }
+        });
+        
+        // Handle manual typing in Reply-To field - clear any validation errors if email is valid
+        $('#mcf-reply-to').on('input', function() {
+            var emailValue = $(this).val();
+            if (emailValue && isValidEmail(emailValue)) {
+                clearFieldError($(this));
+            }
+        });
+    }
+    
+    /**
+     * Setup autocomplete for a specific field
+     */
+    function setupAutocompleteField(inputSelector, suggestionsSelector, onSelectCallback) {
+        var $input = $(inputSelector);
+        var $suggestions = $(suggestionsSelector);
+        var $field = $input.closest('.mcf-autocomplete-field');
+        
+        // Show/hide suggestions based on input
+        $input.on('input focus', function() {
+            var inputValue = $(this).val().toLowerCase();
+            
+            if (inputValue.length > 0) {
+                // Filter suggestions
+                $suggestions.find('.mcf-suggestion').each(function() {
+                    var suggestionText = $(this).text().toLowerCase();
+                    if (suggestionText.indexOf(inputValue) !== -1) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                // Show suggestions if any match
+                var visibleSuggestions = $suggestions.find('.mcf-suggestion:visible').length;
+                if (visibleSuggestions > 0) {
+                    $suggestions.show();
+                } else {
+                    $suggestions.hide();
+                }
+            } else {
+                // Show all suggestions when input is empty
+                $suggestions.find('.mcf-suggestion').show();
+                $suggestions.show();
+            }
+        });
+        
+        // Hide suggestions when input loses focus (with delay for clicking)
+        $input.on('blur', function() {
+            setTimeout(function() {
+                // Only hide if no suggestion was clicked
+                if (!$suggestions.data('clicked')) {
+                    $suggestions.hide();
+                }
+                $suggestions.removeData('clicked');
+            }, 200);
+        });
+        
+        // Handle suggestion clicks
+        $suggestions.on('click', '.mcf-suggestion', function() {
+            // Mark that a suggestion was clicked to prevent blur validation
+            $suggestions.data('clicked', true);
+            
+            var selectedValue = $(this).data('value');
+            $input.val(selectedValue);
+            $suggestions.hide();
+            
+            // Call callback if provided
+            if (typeof onSelectCallback === 'function') {
+                onSelectCallback(selectedValue);
+            }
+            
+            // Clear any existing validation errors
+            clearFieldError($input);
+            
+            // Trigger change event
+            $input.trigger('change');
+        });
+        
+        // Hide suggestions when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest($field).length) {
+                $suggestions.hide();
+            }
+        });
+        
+        // Handle keyboard navigation
+        $input.on('keydown', function(e) {
+            var $visibleSuggestions = $suggestions.find('.mcf-suggestion:visible');
+            var $active = $visibleSuggestions.filter('.active');
+            
+            if (e.keyCode === 40) { // Down arrow
+                e.preventDefault();
+                if ($active.length === 0) {
+                    $visibleSuggestions.first().addClass('active');
+                } else {
+                    $active.removeClass('active').next().addClass('active');
+                }
+            } else if (e.keyCode === 38) { // Up arrow
+                e.preventDefault();
+                if ($active.length === 0) {
+                    $visibleSuggestions.last().addClass('active');
+                } else {
+                    $active.removeClass('active').prev().addClass('active');
+                }
+            } else if (e.keyCode === 13) { // Enter
+                e.preventDefault();
+                if ($active.length > 0) {
+                    $active.click();
+                }
+            } else if (e.keyCode === 27) { // Escape
+                $suggestions.hide();
+                $visibleSuggestions.removeClass('active');
+            }
+        });
     }
     
 }); 
