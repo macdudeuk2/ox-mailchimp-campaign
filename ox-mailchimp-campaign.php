@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.2.0
+ * @version 1.2.1
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.2.0');
+define('MCF_PLUGIN_VERSION', '1.2.1');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -184,6 +184,10 @@ class MailchimpCampaignForm {
         // Save predefined from names and emails
         update_option('ox_mailchimp_campaign_predefined_from_names', sanitize_textarea_field($_POST['predefined_from_names']));
         update_option('ox_mailchimp_campaign_predefined_from_emails', sanitize_textarea_field($_POST['predefined_from_emails']));
+        
+        // Clear any object cache for these options
+        wp_cache_delete('ox_mailchimp_campaign_predefined_from_names', 'options');
+        wp_cache_delete('ox_mailchimp_campaign_predefined_from_emails', 'options');
             
             echo '<div class="notice notice-success"><p>' . __('Settings saved!', 'ox-mailchimp-campaign') . '</p></div>';
         }
@@ -241,12 +245,12 @@ class MailchimpCampaignForm {
         // Create a unique campaign identifier to prevent duplicates
         // Use original title (without timestamp) for hash to prevent same content being sent multiple times
         $campaign_hash = md5(
-            sanitize_text_field($_POST['subject']) . 
-            sanitize_text_field($_POST['title']) . 
-            sanitize_text_field($_POST['from_name']) . 
-            sanitize_email($_POST['from_email']) . 
-            sanitize_text_field($_POST['tag']) . 
-            $this->clean_html_for_email(wp_kses_post($_POST['content']))
+            sanitize_text_field( wp_unslash( $_POST['subject'] ) ) . 
+            sanitize_text_field( wp_unslash( $_POST['title'] ) ) . 
+            sanitize_text_field( wp_unslash( $_POST['from_name'] ) ) . 
+            sanitize_email( wp_unslash( $_POST['from_email'] ) ) . 
+            sanitize_text_field( wp_unslash( $_POST['tag'] ) ) . 
+            $this->clean_html_for_email( wp_kses_post( wp_unslash( $_POST['content'] ) ) )
         );
         
         // Check if this campaign was already created recently (within 5 minutes)
@@ -265,13 +269,13 @@ class MailchimpCampaignForm {
         
         // Get form data
         $campaign_data = array(
-            'subject' => sanitize_text_field($_POST['subject']),
-            'from_name' => sanitize_text_field($_POST['from_name']),
-            'from_email' => sanitize_email($_POST['from_email']),
-            'reply_to' => sanitize_email($_POST['reply_to']),
-            'title' => sanitize_text_field($_POST['title']),
-            'content' => $this->clean_html_for_email(wp_kses_post($_POST['content'])),
-            'tag' => sanitize_text_field($_POST['tag'])
+            'subject' => sanitize_text_field( wp_unslash( $_POST['subject'] ) ),
+            'from_name' => sanitize_text_field( wp_unslash( $_POST['from_name'] ) ),
+            'from_email' => sanitize_email( wp_unslash( $_POST['from_email'] ) ),
+            'reply_to' => sanitize_email( wp_unslash( $_POST['reply_to'] ) ),
+            'title' => sanitize_text_field( wp_unslash( $_POST['title'] ) ),
+            'content' => $this->clean_html_for_email( wp_kses_post( wp_unslash( $_POST['content'] ) ) ),
+            'tag' => sanitize_text_field( wp_unslash( $_POST['tag'] ) )
         );
         
         // Convert template variables to Mailchimp merge tags
@@ -352,7 +356,7 @@ class MailchimpCampaignForm {
                 'Authorization' => 'Basic ' . base64_encode('user:' . $api_key),
                 'Content-Type' => 'application/json'
             ),
-            'body' => json_encode($campaign_data)
+            'body' => wp_json_encode($campaign_data)
         ));
         
         if (is_wp_error($response)) {
@@ -386,7 +390,7 @@ class MailchimpCampaignForm {
                 'Authorization' => 'Basic ' . base64_encode('user:' . $api_key),
                 'Content-Type' => 'application/json'
             ),
-            'body' => json_encode($content_data)
+            'body' => wp_json_encode($content_data)
         ));
         
         if (is_wp_error($content_response)) {
@@ -645,6 +649,12 @@ function mcf_plugin_upgrade_check() {
             if (get_option('ox_mailchimp_campaign_predefined_from_emails') === false) {
                 add_option('ox_mailchimp_campaign_predefined_from_emails', '');
             }
+        }
+        
+        // Version 1.2.1: Unslash POST and use wp_json_encode for Mailchimp payload
+        if (version_compare($stored_version, '1.2.1', '<')) {
+            // No DB schema changes; behavior updates are in code paths
+            // Kept intentionally empty as a marker for the version bump
         }
         
         // Example for future versions:

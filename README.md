@@ -1,6 +1,6 @@
 # OX Mailchimp Campaign
 
-**Version: 1.2.0**
+**Version: 1.2.1**
 
 A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation.
 
