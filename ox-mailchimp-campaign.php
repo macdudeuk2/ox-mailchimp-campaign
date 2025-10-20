@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.2.1
+ * Version: 1.2.2
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.2.1
+ * @version 1.2.2
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.2.1');
+define('MCF_PLUGIN_VERSION', '1.2.2');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -81,6 +81,21 @@ class MailchimpCampaignForm {
      * Converts WordPress classes to inline styles that work in email clients
      */
     private function clean_html_for_email($content) {
+        // Strip WordPress caption shortcodes but keep the images
+        // Pattern matches [caption ...]<img .../>caption text[/caption]
+        $content = preg_replace_callback(
+            '/\[caption[^\]]*\](.*?)\[\/caption\]/is',
+            function($matches) {
+                // Extract just the img tag from the caption content
+                if (preg_match('/<img[^>]+>/i', $matches[1], $img_match)) {
+                    return $img_match[0];
+                }
+                // If no img found, return empty string
+                return '';
+            },
+            $content
+        );
+        
         // Process images with alignment classes, but preserve existing inline styles
         $content = preg_replace_callback('/<img([^>]*?class="[^"]*align(left|right|center|none)[^"]*"[^>]*?)>/', function($matches) {
             $img_tag = $matches[0];
@@ -657,8 +672,14 @@ function mcf_plugin_upgrade_check() {
             // Kept intentionally empty as a marker for the version bump
         }
         
+        // Version 1.2.2: Strip WordPress caption shortcodes from email content
+        if (version_compare($stored_version, '1.2.2', '<')) {
+            // No DB schema changes; caption stripping added to clean_html_for_email()
+            // Kept intentionally empty as a marker for the version bump
+        }
+        
         // Example for future versions:
-        // if (version_compare($stored_version, '1.2.0', '<')) {
+        // if (version_compare($stored_version, '1.3.0', '<')) {
         //     // Add upgrade logic here
         // }
 
