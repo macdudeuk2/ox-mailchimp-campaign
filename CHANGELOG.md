@@ -5,16 +5,6 @@ All notable changes to the Mailchimp Campaign Form plugin will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.2] - 2025-10-20
-
-### Fixed
-- **Caption Shortcodes**: Strip WordPress `[caption]` shortcodes from email content to prevent raw shortcode text appearing in emails
-- **Email Compatibility**: Extract images from caption shortcodes while discarding caption text that email clients can't render
-
-### Technical
-- **Content Cleaning**: Enhanced `clean_html_for_email()` method to process caption shortcodes before sending to Mailchimp
-- **Upgrade Hook**: Added 1.2.2 upgrade branch (no schema changes; behavior change in code paths)
-
 ## [1.2.1] - 2025-09-17
 
 ### Fixed

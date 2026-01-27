@@ -1,6 +1,6 @@
 # OX Mailchimp Campaign
 
-**Version: 1.2.1**
+**Version: 1.3.0**
 
 A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation.
 
@@ -23,6 +23,7 @@ A WordPress plugin that generates forms for sending email campaigns using Mailch
 - **Image Support**: Insert images via URL with full parameter control (width, height, alignment, alt text)
 - **Media Uploader**: WordPress media library integration for easy image upload and insertion
 - **Predefined From Names & Emails**: Dropdown lists for quick selection of common sender information
+- **Dynamic Event Selection**: Choose any future event for event shortcodes instead of just the default "next-event"
 
 ## Requirements
 
@@ -113,6 +114,21 @@ You can use these variables in your email templates:
 
 These will be automatically converted to Mailchimp merge tags when the campaign is created.
 
+### Event Shortcodes
+
+You can use custom shortcodes in your email templates to automatically pull data from events. These shortcodes should be added to your theme's `functions.php` file to maintain theme awareness.
+
+**Recommended shortcodes to add to functions.php:**
+
+- `[event_title]` - Displays the title of the next event
+- `[event_image]` - Displays the featured image of the next event
+- `[event_excerpt]` - Displays the excerpt/description of the next event
+- `[event_link]` - Displays a formatted button link to the next event
+
+See the "Code for functions.php" section below for implementation examples.
+
+**Note:** These shortcodes work by finding the event in The Events Calendar plugin that has a specific tag (e.g., `next-event`). Make sure to tag your upcoming event appropriately for the shortcodes to work.
+
 ### Image Insertion
 
 The email content editor includes full image support with two methods:
@@ -194,6 +210,160 @@ The plugin includes basic CSS styling that can be overridden with your theme's C
 - **Capability Checks**: Only users with `manage_options` capability can access admin features
 - **Duplicate Prevention**: Multiple layers of protection against duplicate submissions
 
+## Code for functions.php
+
+### Event Shortcodes
+
+Add these shortcodes to your theme's `functions.php` file to enable event-related shortcodes in your email templates.
+
+**Important:** These shortcodes support the plugin's "Choose different event" feature. When a specific event is selected in the campaign form, the shortcodes will use that event. Otherwise, they fall back to the event tagged with `next-event`.
+
+```php
+/**
+ * Helper function to get the event ID for shortcodes
+ * Checks for plugin-provided event context, falls back to 'next-event' tag
+ * 
+ * @return int|false Event post ID or false if not found
+ */
+function get_event_shortcode_post_id() {
+    // Check if the OX Mailchimp Campaign plugin has set an event context
+    if (!empty($GLOBALS['ox_mailchimp_event_id'])) {
+        $event_id = intval($GLOBALS['ox_mailchimp_event_id']);
+        $post = get_post($event_id);
+        if ($post && $post->post_type === 'tribe_events' && $post->post_status === 'publish') {
+            return $event_id;
+        }
+    }
+    
+    // Fallback: query for the event tagged 'next-event'
+    $args = array(
+        'post_type'      => 'tribe_events',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'tag'            => 'next-event',
+    );
+    
+    $query = new WP_Query($args);
+    
+    if ($query->have_posts()) {
+        $query->the_post();
+        $event_id = get_the_ID();
+        wp_reset_postdata();
+        return $event_id;
+    }
+    
+    return false;
+}
+
+/**
+ * Shortcode: [event_title]
+ * Displays the title of the selected event (or next-event if none selected)
+ */
+function event_title_shortcode() {
+    $event_id = get_event_shortcode_post_id();
+    
+    if ($event_id) {
+        return esc_html(get_the_title($event_id));
+    }
+    
+    return '';
+}
+add_shortcode('event_title', 'event_title_shortcode');
+
+/**
+ * Shortcode: [event_image]
+ * Displays the featured image of the selected event (or next-event if none selected)
+ * Attributes: width, style
+ */
+function event_image_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'width' => '600',
+        'style' => 'display: block; margin: 0 auto;'
+    ), $atts);
+    
+    $event_id = get_event_shortcode_post_id();
+    
+    if ($event_id) {
+        $image_url = get_the_post_thumbnail_url($event_id, 'full');
+        $title = get_the_title($event_id);
+        
+        if ($image_url) {
+            return '<img class="alignnone" style="' . esc_attr($atts['style']) . '" src="' . esc_url($image_url) . '" width="' . esc_attr($atts['width']) . '" alt="' . esc_attr($title) . '">';
+        }
+    }
+    
+    return '';
+}
+add_shortcode('event_image', 'event_image_shortcode');
+
+/**
+ * Shortcode: [event_excerpt]
+ * Displays the excerpt of the selected event (or next-event if none selected)
+ */
+function event_excerpt_shortcode() {
+    $event_id = get_event_shortcode_post_id();
+    
+    if ($event_id) {
+        $post = get_post($event_id);
+        $excerpt = $post->post_excerpt;
+        
+        // If no excerpt, generate one from content
+        if (empty($excerpt)) {
+            $excerpt = wp_trim_words($post->post_content, 55, '...');
+        }
+        
+        return wpautop($excerpt);
+    }
+    
+    return '';
+}
+add_shortcode('event_excerpt', 'event_excerpt_shortcode');
+
+/**
+ * Shortcode: [event_link]
+ * Displays a formatted button link to the selected event (or next-event if none selected)
+ * Attributes: button_text, button_style, wrapper_class
+ */
+function event_link_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'button_text' => '',
+        'button_style' => 'display: inline-block; padding: 15px 30px; background: #b11416; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;',
+        'wrapper_class' => 'highlight'
+    ), $atts);
+    
+    $event_id = get_event_shortcode_post_id();
+    
+    if ($event_id) {
+        $permalink = get_permalink($event_id);
+        $title = get_the_title($event_id);
+        
+        $button_text = !empty($atts['button_text']) ? $atts['button_text'] : $title;
+        
+        $output = '<div class="' . esc_attr($atts['wrapper_class']) . '">';
+        $output .= '<a class="payment-button" href="' . esc_url($permalink) . '" style="' . esc_attr($atts['button_style']) . '">';
+        $output .= esc_html($button_text);
+        $output .= '</a>';
+        $output .= '</div>';
+        
+        return $output;
+    }
+    
+    return '';
+}
+add_shortcode('event_link', 'event_link_shortcode');
+```
+
+**Usage in Email Templates:**
+- `[event_title]`
+- `[event_image width="800"]`
+- `[event_excerpt]`
+- `[event_link button_text="Book Now"]`
+
+**How the Event Selection Works:**
+1. When you select a template, shortcodes are processed using the event tagged `next-event` (default behaviour)
+2. If you then select a different event from the "Choose different event" dropdown, the template is re-processed using that event
+3. The shortcodes remain generic in your templates - the event context is handled automatically
+
 ## Troubleshooting
 
 ### Common Issues
@@ -223,6 +393,13 @@ define('WP_DEBUG_LOG', true);
 ```
 
 ## Changelog
+
+### Version 1.3.0
+- **Added**: Dynamic event selection - choose any future event for event shortcodes instead of just the default "next-event"
+- **Added**: New "Choose different event" dropdown in the campaign form below the template selector
+- **Added**: AJAX endpoints for fetching future events and processing templates with event context
+- **Updated**: Event shortcodes in functions.php now support plugin-provided event context with fallback to 'next-event' tag
+- **Note**: Requires updating event shortcodes in your theme's functions.php - see documentation
 
 ### Version 1.1.2
 - **Changed**: Set the TinyMCE editor height in the campaign form to a minimum of 600px for improved editing experience.

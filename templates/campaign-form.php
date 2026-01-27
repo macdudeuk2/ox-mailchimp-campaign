@@ -27,7 +27,7 @@ $has_override = !empty($from_email_override);
 <div class="mcf-campaign-form">
     <h2><?php echo esc_html($atts['title']); ?></h2>
     
-    <form id="mcf-campaign-form" method="post">
+    <form id="mcf-campaign-form" method="post" autocomplete="off">
         <div class="mcf-form-row">
             <label for="mcf-subject"><?php echo esc_html($label_subject); ?> *</label>
             <input type="text" id="mcf-subject" name="subject" required />
@@ -117,6 +117,14 @@ $has_override = !empty($from_email_override);
                 <option value=""><?php _e('Select a template (optional)', 'ox-mailchimp-campaign'); ?></option>
             </select>
             <small><?php _e('Choose a template to pre-fill the content area', 'ox-mailchimp-campaign'); ?></small>
+        </div>
+        
+        <div class="mcf-form-row">
+            <label for="mcf-event"><?php _e('Choose different event', 'ox-mailchimp-campaign'); ?></label>
+            <select id="mcf-event" name="event">
+                <option value=""><?php _e('', 'ox-mailchimp-campaign'); ?></option>
+            </select>
+            <small><?php _e('Optional: Select a different event for event shortcodes in the template', 'ox-mailchimp-campaign'); ?></small>
         </div>
         
         <div class="mcf-form-row">

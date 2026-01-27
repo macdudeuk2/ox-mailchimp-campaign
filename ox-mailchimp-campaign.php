@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.2.2
+ * Version: 1.3.0
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.2.2
+ * @version 1.3.0
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.2.2');
+define('MCF_PLUGIN_VERSION', '1.3.0');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -55,6 +55,10 @@ class MailchimpCampaignForm {
         add_action('wp_ajax_nopriv_ox_mailchimp_campaign_get_templates', array($this, 'ajax_get_templates'));
         add_action('wp_ajax_ox_mailchimp_campaign_get_template_content', array($this, 'ajax_get_template_content'));
         add_action('wp_ajax_nopriv_ox_mailchimp_campaign_get_template_content', array($this, 'ajax_get_template_content'));
+        add_action('wp_ajax_ox_mailchimp_campaign_get_events', array($this, 'ajax_get_events'));
+        add_action('wp_ajax_nopriv_ox_mailchimp_campaign_get_events', array($this, 'ajax_get_events'));
+        add_action('wp_ajax_ox_mailchimp_campaign_process_template_with_event', array($this, 'ajax_process_template_with_event'));
+        add_action('wp_ajax_nopriv_ox_mailchimp_campaign_process_template_with_event', array($this, 'ajax_process_template_with_event'));
         
         // Register shortcode
         add_shortcode('ox_mailchimp_campaign_form', array($this, 'render_form'));
@@ -608,6 +612,141 @@ class MailchimpCampaignForm {
             wp_send_json_error(__('Template not found', 'ox-mailchimp-campaign'));
         }
     }
+    
+    /**
+     * AJAX handler for getting future events from The Events Calendar
+     */
+    public function ajax_get_events() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'ox_mailchimp_campaign_nonce')) {
+            wp_die(__('Security check failed', 'ox-mailchimp-campaign'));
+        }
+        
+        $events = $this->get_future_events();
+        
+        // Debug logging (uncomment if needed)
+        // if (defined('WP_DEBUG') && WP_DEBUG) {
+        //     error_log('OX Mailchimp Campaign: ajax_get_events called, found ' . count($events) . ' events');
+        // }
+        
+        wp_send_json_success($events);
+    }
+    
+    /**
+     * Get future events from The Events Calendar
+     * 
+     * @return array Array of events with id and title
+     */
+    private function get_future_events() {
+        // Check if The Events Calendar is active
+        if (!post_type_exists('tribe_events')) {
+            // Debug logging (uncomment if needed)
+            // if (defined('WP_DEBUG') && WP_DEBUG) {
+            //     error_log('OX Mailchimp Campaign: tribe_events post type does not exist');
+            // }
+            return array();
+        }
+        
+        // Get today's date for filtering
+        $today = current_time('Y-m-d');
+        
+        // Use direct database query to bypass TEC's query filters
+        // TEC hijacks WP_Query for tribe_events and uses custom tables that don't work with SQLite
+        global $wpdb;
+        
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT p.ID, p.post_title, pm.meta_value as start_date
+                FROM {$wpdb->posts} p
+                LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_EventStartDate'
+                WHERE p.post_type = %s
+                AND p.post_status = %s
+                ORDER BY pm.meta_value ASC",
+                'tribe_events',
+                'publish'
+            )
+        );
+        
+        // Debug logging (uncomment if needed)
+        // if (defined('WP_DEBUG') && WP_DEBUG) {
+        //     error_log('OX Mailchimp Campaign: Direct query found ' . count($results) . ' events');
+        // }
+        
+        $events = array();
+        
+        if ($results) {
+            foreach ($results as $row) {
+                // Only include events starting today or later
+                $start_date = $row->start_date;
+                
+                // Debug logging (uncomment if needed)
+                // if (defined('WP_DEBUG') && WP_DEBUG) {
+                //     error_log('OX Mailchimp Campaign: Event ' . $row->ID . ' (' . $row->post_title . ') start_date=' . $start_date . ', today=' . $today);
+                // }
+                
+                if (!empty($start_date) && substr($start_date, 0, 10) >= $today) {
+                    $title = $row->post_title;
+                    
+                    // Truncate title to 40 characters
+                    if (strlen($title) > 40) {
+                        $title = substr($title, 0, 37) . '...';
+                    }
+                    
+                    $events[] = array(
+                        'id'    => intval($row->ID),
+                        'title' => $title
+                    );
+                }
+            }
+        }
+        
+        return $events;
+    }
+    
+    /**
+     * AJAX handler for processing template content with a specific event
+     */
+    public function ajax_process_template_with_event() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'ox_mailchimp_campaign_nonce')) {
+            wp_die(__('Security check failed', 'ox-mailchimp-campaign'));
+        }
+        
+        $template_id = intval($_POST['template_id']);
+        $event_id = isset($_POST['event_id']) ? intval($_POST['event_id']) : 0;
+        
+        // Debug logging (uncomment if needed)
+        // if (defined('WP_DEBUG') && WP_DEBUG) {
+        //     error_log('OX Mailchimp Campaign: ajax_process_template_with_event called - template_id=' . $template_id . ', event_id=' . $event_id);
+        // }
+        
+        $email_templates = new MCF_Email_Templates();
+        $content = $email_templates->get_template_content($template_id);
+        
+        if (!$content) {
+            wp_send_json_error(__('Template not found', 'ox-mailchimp-campaign'));
+            return;
+        }
+        
+        // Set the event context for shortcode processing
+        if ($event_id > 0) {
+            // Set global context for event shortcodes
+            $GLOBALS['ox_mailchimp_event_id'] = $event_id;
+            
+            // Debug logging (uncomment if needed)
+            // if (defined('WP_DEBUG') && WP_DEBUG) {
+            //     error_log('OX Mailchimp Campaign: Set ox_mailchimp_event_id global to ' . $event_id);
+            // }
+        }
+        
+        // Process shortcodes with the event context
+        $processed_content = do_shortcode($content);
+        
+        // Clear the global context
+        unset($GLOBALS['ox_mailchimp_event_id']);
+        
+        wp_send_json_success($processed_content);
+    }
 }
 
 // Initialize plugin
@@ -678,10 +817,11 @@ function mcf_plugin_upgrade_check() {
             // Kept intentionally empty as a marker for the version bump
         }
         
-        // Example for future versions:
-        // if (version_compare($stored_version, '1.3.0', '<')) {
-        //     // Add upgrade logic here
-        // }
+        // Version 1.3.0: Added event selector for dynamic event shortcode processing
+        if (version_compare($stored_version, '1.3.0', '<')) {
+            // No DB schema changes; event selection handled via AJAX and global context
+            // Shortcodes in functions.php need to be updated to check $GLOBALS['ox_mailchimp_event_id']
+        }
 
         // Update the stored version
         update_option('mcf_plugin_version', MCF_PLUGIN_VERSION);

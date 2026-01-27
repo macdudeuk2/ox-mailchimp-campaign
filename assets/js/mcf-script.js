@@ -7,18 +7,24 @@ jQuery(document).ready(function($) {
     // Initialize form functionality
     initMailchimpCampaignForm();
     
+    // Store the currently selected template ID for event re-processing
+    var currentTemplateId = null;
+    
+    // Flag to prevent event handler firing during programmatic changes
+    var isResettingEvent = false;
+    
+    // Flag to prevent handlers during initial page load
+    var isInitializing = true;
+    
     function initMailchimpCampaignForm() {
-        // Load tags when page loads
-        loadTags();
-        
-        // Load templates when page loads
-        loadTemplates();
-        
         // Handle form submission
         $('#mcf-campaign-form').on('submit', handleFormSubmission);
         
         // Handle template selection
         $('#mcf-template').on('change', handleTemplateSelection);
+        
+        // Handle event selection
+        $('#mcf-event').on('change', handleEventSelection);
         
         // Handle clear content button
         $('#mcf-clear-content').on('click', handleClearContent);
@@ -28,6 +34,16 @@ jQuery(document).ready(function($) {
         
         // Setup dropdown functionality
         setupDropdownFields();
+        
+        // Load data AFTER handlers are bound
+        // Use callbacks to know when loading is complete
+        loadTags();
+        loadTemplates(function() {
+            loadEvents(function() {
+                // All loading complete, allow handlers to work
+                isInitializing = false;
+            });
+        });
     }
     
     function loadTags() {
@@ -66,10 +82,11 @@ jQuery(document).ready(function($) {
         });
     }
     
-    function loadTemplates() {
+    function loadTemplates(callback) {
         var $templateSelect = $('#mcf-template');
         
         if ($templateSelect.length === 0) {
+            if (typeof callback === 'function') callback();
             return;
         }
         
@@ -98,19 +115,73 @@ jQuery(document).ready(function($) {
                 } else {
                     $templateSelect.html('<option value="">No templates found</option>');
                 }
+                if (typeof callback === 'function') callback();
             },
             error: function(xhr, status, error) {
                 $templateSelect.html('<option value="">Error loading templates</option>');
+                if (typeof callback === 'function') callback();
+            }
+        });
+    }
+    
+    function loadEvents(callback) {
+        var $eventSelect = $('#mcf-event');
+        
+        if ($eventSelect.length === 0) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
+        
+        $.ajax({
+            url: ox_mailchimp_campaign_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'ox_mailchimp_campaign_get_events',
+                nonce: ox_mailchimp_campaign_ajax.nonce
+            },
+            beforeSend: function() {
+                $eventSelect.html('<option value="">Loading events...</option>');
+            },
+            success: function(response) {
+                $eventSelect.empty();
+                $eventSelect.append('<option value=""></option>');
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    $.each(response.data, function(index, event) {
+                        $eventSelect.append('<option value="' + event.id + '">' + event.title + '</option>');
+                    });
+                }
+                // If no events found, the dropdown just shows the default option
+                if (typeof callback === 'function') callback();
+            },
+            error: function(xhr, status, error) {
+                $eventSelect.html('<option value=""></option>');
+                if (typeof callback === 'function') callback();
             }
         });
     }
     
     function handleTemplateSelection() {
+        // Skip during initial page load
+        if (isInitializing) {
+            return;
+        }
+        
         var templateId = $(this).val();
         
         if (!templateId) {
+            currentTemplateId = null;
             return;
         }
+        
+        // Store the template ID for potential re-processing with different event
+        currentTemplateId = templateId;
+        
+        // Reset event selection to default when template changes
+        // Use flag to prevent handleEventSelection from firing
+        isResettingEvent = true;
+        $('#mcf-event').val('');
+        isResettingEvent = false;
         
         $.ajax({
             url: ox_mailchimp_campaign_ajax.ajax_url,
@@ -136,6 +207,69 @@ jQuery(document).ready(function($) {
         });
     }
     
+    function handleEventSelection() {
+        // Skip during initial page load or programmatic reset
+        if (isInitializing || isResettingEvent) {
+            return;
+        }
+        
+        var eventId = $(this).val();
+        
+        // If no template is selected, event selection does nothing
+        if (!currentTemplateId) {
+            return;
+        }
+        
+        // If event is reset to default (empty), reload template with next-event
+        if (!eventId) {
+            // Re-fetch the template with default (next-event) processing
+            $.ajax({
+                url: ox_mailchimp_campaign_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'ox_mailchimp_campaign_get_template_content',
+                    template_id: currentTemplateId,
+                    nonce: ox_mailchimp_campaign_ajax.nonce
+                },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        if (typeof tinymce !== 'undefined' && tinymce.get('mcf-content')) {
+                            tinymce.get('mcf-content').setContent(response.data);
+                        } else {
+                            $('#mcf-content').val(response.data);
+                        }
+                    }
+                }
+            });
+            return;
+        }
+        
+        // Process template with the selected event
+        $.ajax({
+            url: ox_mailchimp_campaign_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'ox_mailchimp_campaign_process_template_with_event',
+                template_id: currentTemplateId,
+                event_id: eventId,
+                nonce: ox_mailchimp_campaign_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    // Replace content in TinyMCE editor with event-processed content
+                    if (typeof tinymce !== 'undefined' && tinymce.get('mcf-content')) {
+                        tinymce.get('mcf-content').setContent(response.data);
+                    } else {
+                        $('#mcf-content').val(response.data);
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                showMessage('Error loading event content. Please try again.', 'error');
+            }
+        });
+    }
+    
     function handleClearContent() {
         // Show confirmation dialog
         if (confirm('Are you sure you want to clear all content? This action cannot be undone.')) {
@@ -148,6 +282,14 @@ jQuery(document).ready(function($) {
             
             // Clear template selection
             $('#mcf-template').val('');
+            
+            // Clear event selection (with flag to prevent handler)
+            isResettingEvent = true;
+            $('#mcf-event').val('');
+            isResettingEvent = false;
+            
+            // Reset stored template ID
+            currentTemplateId = null;
             
             // Show success message
             showMessage('Content cleared successfully', 'success');
@@ -323,6 +465,9 @@ jQuery(document).ready(function($) {
         
         // Clear validation errors
         $('.mcf-validation-error').remove();
+        
+        // Reset stored template ID
+        currentTemplateId = null;
     }
     
     function showFieldError($field, message) {
