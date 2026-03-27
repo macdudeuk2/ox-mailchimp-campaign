@@ -189,4 +189,61 @@ if (!defined('ABSPATH')) {
     
     <h3><?php _e('Example', 'ox-mailchimp-campaign'); ?></h3>
     <code>[ox_mailchimp_campaign_form title="Send Newsletter"]</code>
+    
+    <hr />
+    
+    <h2><?php _e('Member Subscription Sync', 'ox-mailchimp-campaign'); ?></h2>
+    <p><?php _e('Find all users tagged as "member" (via OX Content Blocker) whose Mailchimp subscription status is not "subscribed", and update them both locally and in Mailchimp.', 'ox-mailchimp-campaign'); ?></p>
+    
+    <button type="button" id="ox-resub-members-btn" class="button button-secondary">
+        <?php _e('Resubscribe Members', 'ox-mailchimp-campaign'); ?>
+    </button>
+    <span id="ox-resub-members-spinner" class="spinner" style="float: none; vertical-align: middle;"></span>
+    <div id="ox-resub-members-result" style="margin-top: 10px;"></div>
+    
+    <script>
+    jQuery(function($) {
+        $('#ox-resub-members-btn').on('click', function() {
+            if (!confirm('<?php echo esc_js(__('This will set all "member" users to subscribed in Mailchimp. Continue?', 'ox-mailchimp-campaign')); ?>')) {
+                return;
+            }
+
+            var $btn = $(this);
+            var $spinner = $('#ox-resub-members-spinner');
+            var $result = $('#ox-resub-members-result');
+
+            $btn.prop('disabled', true);
+            $spinner.addClass('is-active');
+            $result.html('');
+
+            $.post(ajaxurl, {
+                action: 'ox_mailchimp_resub_members',
+                nonce: '<?php echo wp_create_nonce('ox_mailchimp_resub_members'); ?>'
+            }, function(response) {
+                $btn.prop('disabled', false);
+                $spinner.removeClass('is-active');
+
+                if (response.success) {
+                    $result.html(
+                        '<div class="notice notice-success inline"><p>' +
+                        response.data.message +
+                        '</p></div>'
+                    );
+                } else {
+                    $result.html(
+                        '<div class="notice notice-error inline"><p>' +
+                        (response.data || '<?php echo esc_js(__('An unexpected error occurred.', 'ox-mailchimp-campaign')); ?>') +
+                        '</p></div>'
+                    );
+                }
+            }).fail(function() {
+                $btn.prop('disabled', false);
+                $spinner.removeClass('is-active');
+                $result.html(
+                    '<div class="notice notice-error inline"><p><?php echo esc_js(__('Request failed. Please try again.', 'ox-mailchimp-campaign')); ?></p></div>'
+                );
+            });
+        });
+    });
+    </script>
 </div> 

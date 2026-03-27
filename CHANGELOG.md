@@ -5,6 +5,14 @@ All notable changes to the Mailchimp Campaign Form plugin will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-03-27
+
+### Added
+- **Member Resubscription Tool**: Admin button on the settings page to find all users tagged as "member" (via OX Content Blocker) who are not subscribed in Mailchimp, update their local status, and sync to Mailchimp directly via the API — bypassing double opt-in
+
+### Fixed
+- **AJAX Error Handling**: Fix "undefined" error message shown when AJAX response is not valid JSON (e.g. expired nonce/session timeout). Add `dataType: 'json'` to form submission AJAX call, add defensive null-checking for `response.data`, and improve the error handler to parse raw XHR response for real error messages and log unexpected responses to console for debugging.
+
 ## [1.2.1] - 2025-09-17
 
 ### Fixed

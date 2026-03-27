@@ -3,7 +3,7 @@
  * Plugin Name: OX Mailchimp Campaign
  * Plugin URI: https://github.com/ox-mailchimp-campaign
  * Description: A WordPress plugin that generates forms for sending email campaigns using Mailchimp API with tag-based audience segmentation. Features include customizable email templates, rich text editor, and duplicate prevention.
- * Version: 1.3.0
+ * Version: 1.3.1
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package OXMailchimpCampaign
- * @version 1.3.0
+ * @version 1.3.1
  * @author Andy McLeod
  * @license GPL v2 or later
  */
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MCF_PLUGIN_VERSION', '1.3.0');
+define('MCF_PLUGIN_VERSION', '1.3.1');
 define('MCF_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MCF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MCF_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -59,6 +59,7 @@ class MailchimpCampaignForm {
         add_action('wp_ajax_nopriv_ox_mailchimp_campaign_get_events', array($this, 'ajax_get_events'));
         add_action('wp_ajax_ox_mailchimp_campaign_process_template_with_event', array($this, 'ajax_process_template_with_event'));
         add_action('wp_ajax_nopriv_ox_mailchimp_campaign_process_template_with_event', array($this, 'ajax_process_template_with_event'));
+        add_action('wp_ajax_ox_mailchimp_resub_members', array($this, 'ajax_resub_members'));
         
         // Register shortcode
         add_shortcode('ox_mailchimp_campaign_form', array($this, 'render_form'));
@@ -747,6 +748,110 @@ class MailchimpCampaignForm {
         
         wp_send_json_success($processed_content);
     }
+    /**
+     * AJAX handler for resubscribing members who are not subscribed in Mailchimp
+     *
+     * Finds users with the "member" access tag (from ox-content-blocker) whose
+     * mailchimp_woocommerce_is_subscribed meta is not '1', updates them locally,
+     * and queues a Mailchimp sync job for each — identical to editing via the
+     * WordPress user profile.
+     */
+    public function ajax_resub_members() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions.', 'ox-mailchimp-campaign'));
+        }
+
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ox_mailchimp_resub_members')) {
+            wp_send_json_error(__('Security check failed.', 'ox-mailchimp-campaign'));
+        }
+
+        if (!function_exists('mailchimp_is_configured') || !mailchimp_is_configured()) {
+            wp_send_json_error(__('Mailchimp for WooCommerce is not active or not configured.', 'ox-mailchimp-campaign'));
+        }
+
+        $api = mailchimp_get_api();
+        $list_id = mailchimp_get_list_id();
+
+        if (!$api || empty($list_id)) {
+            wp_send_json_error(__('Could not initialise the Mailchimp API.', 'ox-mailchimp-campaign'));
+        }
+
+        global $wpdb;
+
+        $user_ids = $wpdb->get_col(
+            "SELECT user_id FROM {$wpdb->usermeta}
+             WHERE meta_key = '_oxcb_access_tags'
+             AND meta_value LIKE '%member%'"
+        );
+
+        if (empty($user_ids)) {
+            wp_send_json_success(array(
+                'updated' => 0,
+                'skipped' => 0,
+                'message' => __('No users found with the "member" tag.', 'ox-mailchimp-campaign'),
+            ));
+        }
+
+        $updated = 0;
+        $skipped = 0;
+        $errors  = array();
+
+        foreach ($user_ids as $user_id) {
+            $user_id = (int) $user_id;
+
+            $tags = get_user_meta($user_id, '_oxcb_access_tags', true);
+            $tags = !empty($tags) ? json_decode($tags, true) : [];
+
+            if (!is_array($tags) || !in_array('member', $tags, true)) {
+                continue;
+            }
+
+            $current = get_user_meta($user_id, 'mailchimp_woocommerce_is_subscribed', true);
+
+            if ($current === '1') {
+                $skipped++;
+                continue;
+            }
+
+            $user = get_user_by('id', $user_id);
+            if (!$user) {
+                continue;
+            }
+
+            update_user_meta($user_id, 'mailchimp_woocommerce_is_subscribed', '1');
+            update_user_meta($user_id, 'mailchimp_woocommerce_marketing_status_updated_at', time());
+
+            try {
+                $api->update($list_id, $user->user_email, 'subscribed');
+            } catch (Exception $e) {
+                $errors[] = sprintf('%s: %s', $user->user_email, $e->getMessage());
+                continue;
+            }
+
+            $updated++;
+        }
+
+        $message = sprintf(
+            __('Done. %d member(s) set to subscribed, %d already subscribed.', 'ox-mailchimp-campaign'),
+            $updated,
+            $skipped
+        );
+
+        if (!empty($errors)) {
+            $message .= ' ' . sprintf(
+                __('%d error(s): %s', 'ox-mailchimp-campaign'),
+                count($errors),
+                implode('; ', $errors)
+            );
+        }
+
+        wp_send_json_success(array(
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors'  => count($errors),
+            'message' => $message,
+        ));
+    }
 }
 
 // Initialize plugin
@@ -821,6 +926,11 @@ function mcf_plugin_upgrade_check() {
         if (version_compare($stored_version, '1.3.0', '<')) {
             // No DB schema changes; event selection handled via AJAX and global context
             // Shortcodes in functions.php need to be updated to check $GLOBALS['ox_mailchimp_event_id']
+        }
+
+        // Version 1.3.1: Added member resubscription tool and AJAX error handling fix
+        if (version_compare($stored_version, '1.3.1', '<')) {
+            // No DB schema changes; new AJAX endpoint and admin UI only
         }
 
         // Update the stored version
